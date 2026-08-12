@@ -1,0 +1,1 @@
+Update: added payment_registry Soroban contract, Next.js API routes for create-payment and payment-status, checkout and dashboard pages (JSON persistence), a simple watcher script for demo, build/deploy script, and CI workflow.

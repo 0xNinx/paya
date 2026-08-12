@@ -1,48 +1,50 @@
 #![no_std]
+use soroban_sdk::{contract, contractimpl, symbol_short, vec, Address, Env, Symbol, Vec, map, Map, Storage, IntoVal, try_into_val};
 
-use soroban_sdk::{contract, contractimpl, Env};
-
-mod logic;
-mod storage;
-mod types;
+#[derive(Clone)]
+pub struct Payment {
+    amount: i128,
+    merchant: Address,
+    status: Symbol, // "PENDING" or "PAID"
+    tx_hash: Option<Symbol>,
+}
 
 #[contract]
-pub struct PaymentRegistryContract;
+pub struct PaymentRegistry;
 
-#[contractimpl]
-impl PaymentRegistryContract {
-    pub fn initialize(env: Env, admin: soroban_sdk::Address) {
-        logic::initialize(&env, admin)
-    }
+mod storage {
+    use soroban_sdk::{Env, Symbol, Address};
 
-    pub fn version(_env: Env) -> u32 {
-        1
-    }
-
-    pub fn create_payment_record(
-        env: Env,
-        merchant_address: soroban_sdk::Address,
-        amount: i128,
-        asset: soroban_sdk::Address,
-    ) -> Result<soroban_sdk::String, crate::types::Error> {
-        logic::create_payment_record(&env, merchant_address, amount, asset)
-    }
-
-    pub fn update_payment_status(
-        env: Env,
-        payment_id: soroban_sdk::String,
-        status: crate::types::PaymentStatus,
-    ) -> Result<(), crate::types::Error> {
-        logic::update_payment_status(&env, payment_id, status)
-    }
-
-    pub fn get_payment(
-        env: Env,
-        payment_id: soroban_sdk::String,
-    ) -> Option<crate::types::PaymentRecord> {
-        storage::get_payment(&env, payment_id)
+    pub fn payments_key() -> Symbol {
+        Symbol::from_str("PAYMENTS")
     }
 }
 
-#[cfg(test)]
-mod test;
+#[contractimpl]
+impl PaymentRegistry {
+    pub fn create_payment(env: Env, id: Symbol, amount: i128, merchant: Address) {
+        let key = id.clone();
+        // store tuple (amount, merchant, status, tx_hash) under key
+        env.storage().set(&key, &(amount, merchant, symbol_short!("PENDING"), Option::<Symbol>::None));
+    }
+
+    pub fn mark_paid(env: Env, id: Symbol, tx_hash: Symbol) {
+        let maybe: Option<(i128, Address, Symbol, Option<Symbol>)> = env.storage().get(&id);
+        match maybe {
+            None => {
+                panic!("payment-not-found")
+            }
+            Some((amount, merchant, _status, _)) => {
+                env.storage().set(&id, &(amount, merchant, symbol_short!("PAID"), Some(tx_hash)));
+            }
+        }
+    }
+
+    pub fn get_payment(env: Env, id: Symbol) -> (i128, Address, Symbol, Option<Symbol>) {
+        let maybe: Option<(i128, Address, Symbol, Option<Symbol>)> = env.storage().get(&id);
+        match maybe {
+            None => panic!("payment-not-found"),
+            Some(t) => t,
+        }
+    }
+}
