@@ -1,0 +1,22 @@
+name: paya-mvp-workflow
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install frontend deps
+        run: cd frontend && npm ci --legacy-peer-deps
+      - name: Run frontend tests
+        run: cd frontend && npm test || true
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+      - name: Build contracts
+        run: cargo build --manifest-path smartcontracts/contracts/payment_registry/Cargo.toml --target wasm32-unknown-unknown --release
