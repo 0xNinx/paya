@@ -1,5 +1,6 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, symbol_short, vec, Address, Env, Symbol, Vec, map, Map, Storage, IntoVal, try_into_val};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, Symbol};
+use core::option::Option;
 
 #[derive(Clone)]
 pub struct Payment {
@@ -13,10 +14,10 @@ pub struct Payment {
 pub struct PaymentRegistry;
 
 mod storage {
-    use soroban_sdk::{Env, Symbol, Address};
+    use soroban_sdk::Symbol;
 
     pub fn payments_key() -> Symbol {
-        Symbol::from_str("PAYMENTS")
+        Symbol::short("PAYMENTS")
     }
 }
 
@@ -25,26 +26,26 @@ impl PaymentRegistry {
     pub fn create_payment(env: Env, id: Symbol, amount: i128, merchant: Address) {
         let key = id.clone();
         // store tuple (amount, merchant, status, tx_hash) under key
-        env.storage().set(&key, &(amount, merchant, symbol_short!("PENDING"), Option::<Symbol>::None));
+        env.storage().persistent().set(&key, &(amount, merchant, symbol_short!("PENDING"), Option::<Symbol>::None));
     }
 
     pub fn mark_paid(env: Env, id: Symbol, tx_hash: Symbol) {
-        let maybe: Option<(i128, Address, Symbol, Option<Symbol>)> = env.storage().get(&id);
+        let maybe: Option<(i128, Address, Symbol, Option<Symbol>)> = env.storage().persistent().get(&id);
         match maybe {
-            None => {
+            Option::None => {
                 panic!("payment-not-found")
             }
-            Some((amount, merchant, _status, _)) => {
-                env.storage().set(&id, &(amount, merchant, symbol_short!("PAID"), Some(tx_hash)));
+            Option::Some((amount, merchant, _status, _)) => {
+                env.storage().persistent().set(&id, &(amount, merchant, symbol_short!("PAID"), Option::Some(tx_hash)));
             }
         }
     }
 
     pub fn get_payment(env: Env, id: Symbol) -> (i128, Address, Symbol, Option<Symbol>) {
-        let maybe: Option<(i128, Address, Symbol, Option<Symbol>)> = env.storage().get(&id);
+        let maybe: Option<(i128, Address, Symbol, Option<Symbol>)> = env.storage().persistent().get(&id);
         match maybe {
-            None => panic!("payment-not-found"),
-            Some(t) => t,
+            Option::None => panic!("payment-not-found"),
+            Option::Some(t) => t,
         }
     }
 }
