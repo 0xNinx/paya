@@ -18,5 +18,6 @@ jobs:
         with:
           toolchain: stable
           profile: minimal
+          target: wasm32-unknown-unknown
       - name: Build contracts
         run: cargo build --manifest-path smartcontracts/contracts/payment_registry/Cargo.toml --target wasm32-unknown-unknown --release
