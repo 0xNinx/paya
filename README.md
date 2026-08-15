@@ -1,6 +1,6 @@
 # Paya
 
-> **"Stripe for crypto payments — powered by Stellar."**
+> **"Crypto payments — powered by Stellar."**
 
 Paya is an open-source, global crypto payment infrastructure that lets businesses and developers accept payments in multiple cryptocurrencies, automatically convert them to stablecoins, settle instantly on the Stellar network, and withdraw to bank accounts.
 
