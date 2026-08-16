@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { RefundModule } from './refund/refund.module';
+import { PaymentSplitModule } from './payment-split/payment-split.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RefundModule } from './refund/refund.module';
       logging: process.env.NODE_ENV === 'development',
     }),
     RefundModule,
+    PaymentSplitModule,
   ],
   controllers: [],
   providers: [],
