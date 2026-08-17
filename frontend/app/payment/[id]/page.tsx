@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { getPaymentWebSocket, PaymentWebSocket } from '@/lib/payment-websocket'
 
 interface PaymentRecord {
   id: string
@@ -15,11 +16,15 @@ interface PaymentRecord {
   txHash?: string
 }
 
+type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'reconnecting'
+
 export default function PaymentStatusPage({ params }: { params: Promise<{ id: string }> }) {
   const [id, setId] = useState<string>('')
   const [rec, setRec] = useState<PaymentRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected')
+  const [ws, setWs] = useState<PaymentWebSocket | null>(null)
 
   useEffect(() => {
     const init = async () => {
@@ -29,6 +34,46 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ id: st
     }
     init()
   }, [params])
+
+  useEffect(() => {
+    if (!id) return
+
+    const paymentWs = getPaymentWebSocket()
+    setWs(paymentWs)
+
+    paymentWs.connect({
+      onConnected: () => {
+        setConnectionStatus('connected')
+        paymentWs.joinPayment(id)
+      },
+      onDisconnected: () => {
+        setConnectionStatus('disconnected')
+      },
+      onReconnecting: () => {
+        setConnectionStatus('reconnecting')
+      },
+      onConnectionError: (error) => {
+        console.error('WebSocket connection error:', error)
+        setConnectionStatus('disconnected')
+      },
+      onStatusUpdate: (update) => {
+        if (update.paymentId === id) {
+          setRec((prev: PaymentRecord | null) => prev ? { ...prev, status: update.status, updatedAt: update.updatedAt ? new Date(update.updatedAt).getTime() : undefined, txHash: update.txHash } : null)
+        }
+      },
+    })
+
+    const handleBeforeUnload = () => {
+      paymentWs.leavePayment(id)
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      paymentWs.leavePayment(id)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [id])
 
   const fetchStatus = async (paymentId: string) => {
     try {
@@ -53,6 +98,24 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ id: st
       case 'PAID': return 'bg-green-100 text-green-800 border-green-200'
       case 'FAILED': return 'bg-red-100 text-red-800 border-red-200'
       case 'PENDING': default: return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    }
+  }
+
+  const getConnectionStatusColor = (status: ConnectionStatus) => {
+    switch (status) {
+      case 'connected': return 'bg-green-100 text-green-800 border-green-200'
+      case 'reconnecting': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      case 'disconnected': return 'bg-red-100 text-red-800 border-red-200'
+      case 'connecting': default: return 'bg-blue-100 text-blue-800 border-blue-200'
+    }
+  }
+
+  const getConnectionStatusText = (status: ConnectionStatus) => {
+    switch (status) {
+      case 'connected': return 'Live'
+      case 'reconnecting': return 'Reconnecting...'
+      case 'disconnected': return 'Offline'
+      case 'connecting': default: return 'Connecting...'
     }
   }
 
@@ -132,7 +195,12 @@ export default function PaymentStatusPage({ params }: { params: Promise<{ id: st
           {/* Header */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-gray-900">Payment Status</h1>
+              <div className="flex items-center gap-4">
+                <h1 className="text-2xl font-bold text-gray-900">Payment Status</h1>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getConnectionStatusColor(connectionStatus)}`}>
+                  {getConnectionStatusText(connectionStatus)}
+                </span>
+              </div>
               <Link href="/dashboard">
                 <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                   Back to Dashboard

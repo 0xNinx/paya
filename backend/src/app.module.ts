@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { RefundModule } from './refund/refund.module';
 import { PaymentSplitModule } from './payment-split/payment-split.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { WebsocketModule } from './websocket/websocket.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { WebhookModule } from './webhook/webhook.module';
     }),
     RefundModule,
     PaymentSplitModule,
+    WebsocketModule,
     WebhookModule,
   ],
   controllers: [],
