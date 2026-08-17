@@ -40,7 +40,9 @@
     "axios": "^1.5.0",
     "uuid": "^9.0.0",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "@nestjs/mapped-types": "^2.0.0",
+    "@nestjs/axios": "^3.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

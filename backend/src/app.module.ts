@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { RefundModule } from './refund/refund.module';
 import { PaymentSplitModule } from './payment-split/payment-split.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { PaymentSplitModule } from './payment-split/payment-split.module';
     }),
     RefundModule,
     PaymentSplitModule,
+    WebhookModule,
   ],
   controllers: [],
   providers: [],
