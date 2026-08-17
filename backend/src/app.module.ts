@@ -6,6 +6,7 @@ import { PaymentSplitModule } from './payment-split/payment-split.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { NotificationServiceModule } from './notification-service/notification-service.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     WebsocketModule,
     WebhookModule,
     SubscriptionModule,
+    NotificationServiceModule,
   ],
   controllers: [],
   providers: [],
