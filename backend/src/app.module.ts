@@ -5,6 +5,7 @@ import { RefundModule } from './refund/refund.module';
 import { PaymentSplitModule } from './payment-split/payment-split.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { WebsocketModule } from './websocket/websocket.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { WebsocketModule } from './websocket/websocket.module';
     PaymentSplitModule,
     WebsocketModule,
     WebhookModule,
+    SubscriptionModule,
   ],
   controllers: [],
   providers: [],
